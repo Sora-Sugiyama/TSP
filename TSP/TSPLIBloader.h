@@ -13,16 +13,10 @@
 #include <string>
 #include <fstream>
 #include <unistd.h>
+#include "TSP.h"
+#include "weight.h"
 
 namespace TSP{
-
-class TSPLIBloader{
-public:
-    std::string WeightType;
-    int dimension;
-    std::vector<std::pair<double,double> >coord;
-    std::vector<int>optTour;
-};
 
 std::string PATH="";
 
@@ -44,44 +38,134 @@ void makeFile(){
     std::system("find . -name \'*.gz\' -exec gzip -d {} \\;");
 }
 
-TSPLIBloader ReadFile(const std::string fileName){
+void ReadFile(const std::string fileName,TSP::problem &X){
     std::ifstream FILE(PATH+"ALL_tsp/"+fileName+".tsp");
     std::ifstream optFile(PATH+"ALL_tsp/"+fileName+".opt.tour");
-    TSPLIBloader ret;
     
     if(FILE.fail()||optFile.fail()){
         std::cout<<"File does not exist."<<std::endl;
-        return ret;
+        return;
     }
-    
+
     std::string junk1,junk2;
     getline(FILE,junk1);
     getline(FILE,junk1);
     getline(FILE,junk1);
+
+    FILE>>junk1>>junk2;
+    if(junk2==":")FILE>>X.dimension;
+    else X.dimension=std::stod(junk2);
     
-    FILE>>junk1>>ret.dimension;
-    FILE>>junk1>>junk2>>ret.WeightType;
-    
-    getline(FILE,junk1);
-    
-    ret.coord.resize(ret.dimension);
-    for(auto &it:ret.coord){
-        FILE>>junk1>>it.first>>it.second;
+    FILE>>junk1>>junk2;
+    if(junk2==":")FILE>>X.WeightType;
+    else X.WeightType=junk2;
+    X.W=std::vector<std::vector<double> >(X.dimension,std::vector<double>(X.dimension,1e18));
+    if(X.WeightType=="EXPLICIT"){
+        std::string FORMAT;
+        int i,j;
+        
+        FILE>>junk1>>junk2;
+        if(junk2==":")FILE>>FORMAT;
+        else FORMAT=junk2;
+        
+        while(1){
+            getline(FILE,junk1);
+            if(junk1=="EDGE_WEIGHT_SECTION")break;
+        }
+        
+        if(FORMAT=="FULL_MATRIX"){
+            for(i=0;i<X.dimension;i++){
+                for(j=0;j<X.dimension;j++)FILE>>X.W[i][j];
+            }
+        }else if(FORMAT=="UPPER_ROW"){
+            for(i=0;i<X.dimension;i++){
+                for(j=0;j<X.dimension-i-1;j++){
+                    FILE>>X.W[i][j];
+                    X.W[j][i]=X.W[i][j];
+                }
+            }
+        }else if(FORMAT=="LOWER_ROW"){
+            for(i=0;i<X.dimension;i++){
+                for(j=0;j<i;j++){
+                    FILE>>X.W[i][j];
+                    X.W[j][i]=X.W[i][j];
+                }
+            }
+        }else if(FORMAT=="UPPER_DIAG_ROW"){
+            for(i=0;i<X.dimension;i++){
+                for(j=0;j<X.dimension-i;j++){
+                    FILE>>X.W[i][j];
+                    X.W[j][i]=X.W[i][j];
+                }
+            }
+        }else if(FORMAT=="LOWER_DIAG_ROW"){
+            for(i=0;i<X.dimension;i++){
+                for(j=0;j<i+1;j++){
+                    FILE>>X.W[i][j];
+                    X.W[j][i]=X.W[i][j];
+                }
+            }
+        }else if(FORMAT=="UPPER_COL"){
+            for(i=0;i<X.dimension;i++){
+                for(j=0;j<i;j++){
+                    FILE>>X.W[j][i];
+                    X.W[i][j]=X.W[j][i];
+                }
+            }
+        }else if(FORMAT=="LOWER_COL"){
+            for(i=0;i<X.dimension;i++){
+                for(j=0;j<X.dimension-i-1;j++){
+                    FILE>>X.W[j][i];
+                    X.W[i][j]=X.W[j][i];
+                }
+            }
+        }else if(FORMAT=="UPPER_DIAG_COL"){
+            for(i=0;i<X.dimension;i++){
+                for(j=0;j<i+1;j++){
+                    FILE>>X.W[j][i];
+                    X.W[i][j]=X.W[j][i];
+                }
+            }
+        }else if(FORMAT=="LOWER_DIAG_COL"){
+            for(i=0;i<X.dimension;i++){
+                for(j=0;j<X.dimension-i;j++){
+                    FILE>>X.W[j][i];
+                    X.W[i][j]=X.W[j][i];
+                }
+            }
+        }else{
+            std::cout<<"WRONG WEIGHT FORMAT"<<std::endl;
+            return;
+        }
+    }else{
+        while(1){
+            getline(FILE,junk1);
+            if(junk1=="NODE_COORD_SECTION")break;
+        }
+        
+        X.coord.resize(X.dimension);
+        for(auto &it:X.coord){
+            if(X.WeightType=="EUC_3D"||X.WeightType=="MAX_3D"||X.WeightType=="MAN_3D"){
+                it.resize(3);
+                FILE>>junk1>>it[0]>>it[1]>>it[2];
+            }else{
+                it.resize(2);
+                FILE>>junk1>>it[0]>>it[1];
+            }
+        }
+        
+        TSP::makeWeightMatrix(X);
     }
+    
     FILE.close();
     
-    getline(FILE,junk1);
-    getline(FILE,junk1);
-    getline(FILE,junk1);
-    getline(FILE,junk1);
-    
-    ret.optTour.resize(ret.dimension);
-    for(auto &it:ret.optTour){
+    X.optTour.resize(X.dimension);
+    for(auto &it:X.optTour){
         optFile>>it;
     }
     optFile.close();
     
-    return ret;
+    
 }
 
 }
