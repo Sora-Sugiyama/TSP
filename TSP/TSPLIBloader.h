@@ -20,7 +20,8 @@ class TSPLIBloader{
 public:
     std::string WeightType;
     int dimension;
-    std::vector<std::pair<int,int> >coord;
+    std::vector<std::pair<double,double> >coord;
+    std::vector<int>optTour;
 };
 
 std::string PATH="";
@@ -43,12 +44,12 @@ void makeFile(){
     std::system("find . -name \'*.gz\' -exec gzip -d {} \\;");
 }
 
-TSPLIBloader ReadFile(std::string &fileName){
-    std::ifstream FILE(PATH+"ALL_tsp/"+fileName);
-    
+TSPLIBloader ReadFile(const std::string fileName){
+    std::ifstream FILE(PATH+"ALL_tsp/"+fileName+".tsp");
+    std::ifstream optFile(PATH+"ALL_tsp/"+fileName+".opt.tour");
     TSPLIBloader ret;
     
-    if(FILE.fail()){
+    if(FILE.fail()||optFile.fail()){
         std::cout<<"File does not exist."<<std::endl;
         return ret;
     }
@@ -67,6 +68,18 @@ TSPLIBloader ReadFile(std::string &fileName){
     for(auto &it:ret.coord){
         FILE>>junk1>>it.first>>it.second;
     }
+    FILE.close();
+    
+    getline(FILE,junk1);
+    getline(FILE,junk1);
+    getline(FILE,junk1);
+    getline(FILE,junk1);
+    
+    ret.optTour.resize(ret.dimension);
+    for(auto &it:ret.optTour){
+        optFile>>it;
+    }
+    optFile.close();
     
     return ret;
 }
