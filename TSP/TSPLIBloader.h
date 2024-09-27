@@ -38,12 +38,14 @@ void makeFile(){
     std::system("find . -name \'*.gz\' -exec gzip -d {} \\;");
 }
 
-void ReadFile(const std::string fileName,TSP::problem &X){
+void ReadFile(const std::string fileName,problem &X){
     std::ifstream FILE(PATH+"ALL_tsp/"+fileName+".tsp");
     std::ifstream optFile(PATH+"ALL_tsp/"+fileName+".opt.tour");
     
     if(FILE.fail()||optFile.fail()){
         std::cout<<"File does not exist."<<std::endl;
+        FILE.close();
+        optFile.close();
         return;
     }
 
@@ -159,13 +161,18 @@ void ReadFile(const std::string fileName,TSP::problem &X){
     
     FILE.close();
     
+    while(1){
+        getline(optFile,junk1);
+        if(junk1=="TOUR_SECTION")break;
+    }
+    
     X.optTour.resize(X.dimension);
     for(auto &it:X.optTour){
         optFile>>it;
+        it--;
     }
+    
     optFile.close();
-    
-    
 }
 
 }
