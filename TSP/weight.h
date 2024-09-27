@@ -71,6 +71,19 @@ void makeWeightMatrix(problem &X){
     }
 }
 
+double loss(int rout[],problem &X){
+    double ret=0;
+    const int n=X.dimension;
+    for(int i=0;i<n;i++)ret+=X.W[rout[i]][rout[(i+1)%n]];
+    return ret;
+}
+double loss(std::vector<int>&rout,problem &X){
+    double ret=0;
+    const int n=X.dimension;
+    for(int i=0;i<n;i++)ret+=X.W[rout[i]][rout[(i+1)%n]];
+    return ret;
+}
+
 }
 
 #endif /* weight_h */
