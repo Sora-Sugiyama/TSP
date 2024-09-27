@@ -20,7 +20,16 @@ public:
     std::vector<std::vector<double> >coord;
     std::vector<int>optTour;
     std::vector<std::vector<double> >W;
+    
+    void clear(){
+        coord.clear();
+        W.clear();
+        optTour.clear();
+        dimension=0;
+        WeightType="";
+    }
 };
+
 }
 
 #include "TSPLIBloader.h"
