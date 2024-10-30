@@ -40,12 +40,11 @@ void makeFile(){
 
 void ReadFile(const std::string fileName,problem &X){
     std::ifstream FILE(PATH+"ALL_tsp/"+fileName+".tsp");
-    std::ifstream optFile(PATH+"ALL_tsp/"+fileName+".opt.tour");
     
-    if(FILE.fail()||optFile.fail()){
+    if(FILE.fail()){
         std::cout<<"File does not exist."<<std::endl;
         FILE.close();
-        optFile.close();
+        exit(1);
         return;
     }
 
@@ -81,7 +80,7 @@ void ReadFile(const std::string fileName,problem &X){
             }
         }else if(FORMAT=="UPPER_ROW"){
             for(i=0;i<X.dimension;i++){
-                for(j=0;j<X.dimension-i-1;j++){
+                for(j=i+1;j<X.dimension;j++){
                     FILE>>X.W[i][j];
                     X.W[j][i]=X.W[i][j];
                 }
@@ -95,7 +94,7 @@ void ReadFile(const std::string fileName,problem &X){
             }
         }else if(FORMAT=="UPPER_DIAG_ROW"){
             for(i=0;i<X.dimension;i++){
-                for(j=0;j<X.dimension-i;j++){
+                for(j=i;j<X.dimension;j++){
                     FILE>>X.W[i][j];
                     X.W[j][i]=X.W[i][j];
                 }
@@ -116,7 +115,7 @@ void ReadFile(const std::string fileName,problem &X){
             }
         }else if(FORMAT=="LOWER_COL"){
             for(i=0;i<X.dimension;i++){
-                for(j=0;j<X.dimension-i-1;j++){
+                for(j=i+1;j<X.dimension;j++){
                     FILE>>X.W[j][i];
                     X.W[i][j]=X.W[j][i];
                 }
@@ -130,7 +129,7 @@ void ReadFile(const std::string fileName,problem &X){
             }
         }else if(FORMAT=="LOWER_DIAG_COL"){
             for(i=0;i<X.dimension;i++){
-                for(j=0;j<X.dimension-i;j++){
+                for(j=i;j<X.dimension;j++){
                     FILE>>X.W[j][i];
                     X.W[i][j]=X.W[j][i];
                 }
@@ -161,6 +160,12 @@ void ReadFile(const std::string fileName,problem &X){
     
     FILE.close();
     
+    std::ifstream optFile(PATH+"ALL_tsp/"+fileName+".opt.tour");
+    if(optFile.fail()){
+        std::cout<<"Opt tour (file) not exist"<<std::endl;
+        optFile.close();
+        return;
+    }
     while(1){
         getline(optFile,junk1);
         if(junk1=="TOUR_SECTION")break;
