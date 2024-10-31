@@ -16,7 +16,7 @@ namespace TSP{
 class problem{
 public:
     std::string WeightType;
-    int dimension;
+    int dimension=0;
     std::vector<std::vector<double> >coord;
     std::vector<int>optTour;
     std::vector<std::vector<double> >W;
@@ -34,5 +34,6 @@ public:
 
 #include "TSPLIBloader.h"
 #include "greedy.h"
+#include "LKH.h"
 
 #endif /* TSP_h */
